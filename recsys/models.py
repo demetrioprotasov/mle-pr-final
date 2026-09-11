@@ -1,9 +1,13 @@
-"""Модели рекомендаций: топ популярных, ALS и похожие товары.
+"""Модели рекомендаций: топ популярных, ALS, похожие товары, ранжировщик.
 
 Топ популярных считается по числу добавлений в корзину — это целевое
 действие кейса. ALS берётся из implicit и обучается на матрице весов
 из recsys.features. Модель сохраняется нативным npz (не pickle), потому
 что файл читают и ноутбук, и шаги DAG в другом образе.
+
+Вторая стадия — CatBoostClassifier, который переупорядочивает пул
+кандидатов по вероятности добавления в корзину; он сохраняется в cbm,
+тоже без pickle.
 
 Запуск: используется как библиотека (from recsys.models import fit_als)
 """
@@ -13,6 +17,7 @@ import logging
 import numpy as np
 import pandas as pd
 import threadpoolctl
+from catboost import CatBoostClassifier
 from implicit.cpu.als import AlternatingLeastSquares
 
 from recsys.config import SEED
@@ -150,3 +155,74 @@ def load_als(path: str):
     Загружает ALS из npz
     """
     return AlternatingLeastSquares.load(path)
+
+
+def fit_ranker(
+    features,
+    target,
+    cat_features=None,
+    eval_set=None,
+    iterations=500,
+    learning_rate=0.1,
+    depth=6,
+    seed=SEED,
+):
+    """
+    Обучает ранжировщик второй стадии — бинарный классификатор CatBoost
+    на пуле кандидатов. Если передан eval_set с отложенными
+    пользователями, обучение останавливается по нему
+    """
+    model = CatBoostClassifier(
+        iterations=iterations,
+        learning_rate=learning_rate,
+        depth=depth,
+        loss_function="Logloss",
+        random_seed=seed,
+        verbose=100,
+        cat_features=cat_features,
+        # иначе CatBoost создаёт рядом с ноутбуком каталог catboost_info
+        allow_writing_files=False,
+    )
+    model.fit(
+        features,
+        target,
+        eval_set=eval_set,
+        early_stopping_rounds=50 if eval_set is not None else None,
+        use_best_model=eval_set is not None,
+    )
+    logger.info("ранжировщик обучен: деревьев %d", model.tree_count_)
+    return model
+
+
+def rank_candidates(model, features) -> np.ndarray:
+    """
+    Вероятность положительного класса для каждой строки пула кандидатов
+    """
+    return model.predict_proba(features)[:, 1].astype("float32")
+
+
+def top_by_score(recs: pd.DataFrame, k: int, score_col: str = "score") -> pd.DataFrame:
+    """
+    Оставляет k лучших позиций на пользователя по указанному скору и
+    проставляет rank; пустые скоры уходят в конец списка
+    """
+    ordered = recs.sort_values(["visitorid", score_col], ascending=[True, False])
+    ordered["rank"] = ordered.groupby("visitorid").cumcount() + 1
+    return ordered[ordered["rank"] <= k].reset_index(drop=True)
+
+
+def save_ranker(model, path: str) -> None:
+    """
+    Сохраняет ранжировщик в формате cbm
+    """
+    model.save_model(path)
+    logger.info("ранжировщик сохранён в %s", path)
+
+
+def load_ranker(path: str):
+    """
+    Загружает ранжировщик из cbm
+    """
+    model = CatBoostClassifier()
+    model.load_model(path)
+    return model
