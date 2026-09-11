@@ -1,0 +1,174 @@
+schema: '2.0'
+stages:
+  prepare_data:
+    cmd: python scripts/prepare_data.py
+    deps:
+    - path: recsys/config.py
+      hash: md5
+      md5: fa42e2f3457199595be3825ce1e5cf77
+      size: 1698
+    - path: recsys/data.py
+      hash: md5
+      md5: 5f350946636dfd6a403ee0552d37d060
+      size: 3597
+    - path: recsys/s3_io.py
+      hash: md5
+      md5: 305a0592d78faea1ee60cbac999bfeb8
+      size: 4173
+    - path: scripts/prepare_data.py
+      hash: md5
+      md5: 0da9f919a422316144c55b6b98f971d4
+      size: 1920
+    params:
+      params.yaml:
+        split_end: '2015-09-19'
+        split_labels: '2015-08-19'
+        split_test: '2015-09-03'
+        split_train_fit: '2015-05-03'
+        split_valid: '2015-08-04'
+    outs:
+    - path: data/events_labels.parquet
+      hash: md5
+      md5: c47114a0daf64ffad06e6dadae9b03b0
+      size: 4444396
+      cloud:
+        s3_storage:
+          etag: c47114a0daf64ffad06e6dadae9b03b0
+          version_id: 00065B3AD2EE73E7
+    - path: data/events_test.parquet
+      hash: md5
+      md5: 9298f8aa3d7988808b98ebb1fa66298d
+      size: 4450098
+      cloud:
+        s3_storage:
+          etag: 9298f8aa3d7988808b98ebb1fa66298d
+          version_id: 00065B3A7DCA01AF
+    - path: data/events_train.parquet
+      hash: md5
+      md5: 6cf472f86d39bde27d52136a6d2214ee
+      size: 33226902
+      cloud:
+        s3_storage:
+          etag: 6cf472f86d39bde27d52136a6d2214ee
+          version_id: 00065B3AD03590EF
+    - path: data/items.parquet
+      hash: md5
+      md5: 48f5007a608a146d6c67a522c2e17036
+      size: 1809994
+      cloud:
+        s3_storage:
+          etag: 48f5007a608a146d6c67a522c2e17036
+          version_id: 00065B3A7E083467
+  train:
+    cmd: python scripts/train.py
+    deps:
+    - path: data/events_labels.parquet
+      hash: md5
+      md5: c47114a0daf64ffad06e6dadae9b03b0
+      size: 4444396
+    - path: data/events_test.parquet
+      hash: md5
+      md5: 9298f8aa3d7988808b98ebb1fa66298d
+      size: 4450098
+    - path: data/events_train.parquet
+      hash: md5
+      md5: 6cf472f86d39bde27d52136a6d2214ee
+      size: 33226902
+    - path: data/items.parquet
+      hash: md5
+      md5: 48f5007a608a146d6c67a522c2e17036
+      size: 1809994
+    - path: recsys/features.py
+      hash: md5
+      md5: 31642c059eb26a0ff7d3e347ea8b74cb
+      size: 14353
+    - path: recsys/models.py
+      hash: md5
+      md5: ec9c82180d7c7f86bd8db0a29d37caf1
+      size: 8842
+    - path: scripts/train.py
+      hash: md5
+      md5: 1fd6602b1ae334f7b00a23ce84974650
+      size: 7097
+    params:
+      params.yaml:
+        als_best:
+          factors: 128
+          regularization: 0.008168455894760165
+          iterations: 10
+        candidates:
+          als_train: 100
+          popular_train: 50
+          als_serving: 50
+          popular_serving: 20
+          negatives_per_user: 30
+          holdout_share: 0.2
+        catboost:
+          iterations: 500
+          learning_rate: 0.1
+          depth: 6
+        event_weights:
+          view: 1
+          addtocart: 5
+          transaction: 10
+        n_candidates: 100
+        seed: 42
+    outs:
+    - path: data/candidates_test.parquet
+      hash: md5
+      md5: 7aa8b3569fa79466a04e89461bdf1270
+      size: 663511
+      cloud:
+        s3_storage:
+          etag: 7aa8b3569fa79466a04e89461bdf1270
+          version_id: 00065B3A7E5DA370
+    - path: models/als_model.npz
+      hash: md5
+      md5: 4a45494ef65471049c112cbb1052d50d
+      size: 688810307
+      isexec: true
+    - path: models/catboost_ranker.cbm
+      hash: md5
+      md5: fe99737b079447afba8e2fa180bbea37
+      size: 210336
+      isexec: true
+  evaluate:
+    cmd: python scripts/evaluate.py
+    deps:
+    - path: data/candidates_test.parquet
+      hash: md5
+      md5: 7aa8b3569fa79466a04e89461bdf1270
+      size: 663511
+    - path: data/events_test.parquet
+      hash: md5
+      md5: 9298f8aa3d7988808b98ebb1fa66298d
+      size: 4450098
+    - path: data/events_train.parquet
+      hash: md5
+      md5: 6cf472f86d39bde27d52136a6d2214ee
+      size: 33226902
+    - path: recsys/features.py
+      hash: md5
+      md5: 31642c059eb26a0ff7d3e347ea8b74cb
+      size: 14353
+    - path: recsys/metrics.py
+      hash: md5
+      md5: 8c3f5533d09fe4daf4f09d700dd883f3
+      size: 4602
+    - path: recsys/models.py
+      hash: md5
+      md5: ec9c82180d7c7f86bd8db0a29d37caf1
+      size: 8842
+    - path: scripts/evaluate.py
+      hash: md5
+      md5: 35c35a923172ccec807cb38c57f3eef3
+      size: 3746
+    params:
+      params.yaml:
+        top_k: 10
+    outs:
+    - path: cv_results/metrics.json
+      hash: md5
+      md5: 1a7f1c0ff9532461941ff1c7f6cadd1a
+      size: 803
+      isexec: true

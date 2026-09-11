@@ -1,0 +1,57 @@
+stages:
+  prepare_data:
+    cmd: python scripts/prepare_data.py
+    deps:
+      - scripts/prepare_data.py
+      - recsys/config.py
+      - recsys/data.py
+      - recsys/s3_io.py
+    params:
+      - split_train_fit
+      - split_valid
+      - split_labels
+      - split_test
+      - split_end
+    outs:
+      - data/events_train.parquet
+      - data/events_labels.parquet
+      - data/events_test.parquet
+      - data/items.parquet
+  train:
+    cmd: python scripts/train.py
+    deps:
+      - scripts/train.py
+      - recsys/features.py
+      - recsys/models.py
+      - data/events_train.parquet
+      - data/events_labels.parquet
+      - data/events_test.parquet
+      - data/items.parquet
+    params:
+      - event_weights
+      - als_best
+      - candidates
+      - catboost
+      - n_candidates
+      - seed
+    outs:
+      - models/als_model.npz:
+          cache: false
+      - models/catboost_ranker.cbm:
+          cache: false
+      - data/candidates_test.parquet
+  evaluate:
+    cmd: python scripts/evaluate.py
+    deps:
+      - scripts/evaluate.py
+      - recsys/features.py
+      - recsys/models.py
+      - recsys/metrics.py
+      - data/candidates_test.parquet
+      - data/events_train.parquet
+      - data/events_test.parquet
+    params:
+      - top_k
+    metrics:
+      - cv_results/metrics.json:
+          cache: false
