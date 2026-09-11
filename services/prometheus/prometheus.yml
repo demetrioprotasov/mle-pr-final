@@ -1,0 +1,19 @@
+global:
+  # как часто собирать метрики?
+  scrape_interval: 5s
+
+  # если за это время сборщик не собрал метрики, то процесс прерывается
+  scrape_timeout: 4s
+
+scrape_configs:
+  # имя сборщика
+  - job_name: "scrapping-recsys-app"
+
+    # c какой страницы собирать метрики?
+    metrics_path: /metrics
+    scheme: http
+
+    static_configs:
+      - targets:
+          # адрес сервиса внутри сети compose (hostname из docker-compose.yaml)
+          - fastapi_app:8010
