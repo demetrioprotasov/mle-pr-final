@@ -1,0 +1,49 @@
+# Сервис рекомендаций, Prometheus и Grafana.
+# Переменные берутся из .env в корне репозитория, поэтому его нужно
+# указать явно — рядом с compose-файлом копии секретов не держим:
+#   docker compose --env-file ../.env up --build -d
+
+services:
+  recsys-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    # доступы и порт сервиса
+    env_file:
+      - ../.env
+    ports:
+      - "${MAIN_APP_PORT}:8010"
+    # артефакты рекомендаций кладёт download_recommendations.py,
+    # сервис только читает их
+    volumes:
+      - type: bind
+        source: ./data
+        target: /app/data
+        read_only: true
+    # имя в подсети, по нему сервис находит Prometheus
+    hostname: fastapi_app
+
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+    ports:
+      - "9090:9090"
+    volumes:
+      - "./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml"
+    hostname: prometheus
+
+  grafana:
+    image: grafana/grafana:11.2.0
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=${GRAFANA_USER}
+      - GF_SECURITY_ADMIN_PASSWORD=${GRAFANA_PASS}
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Viewer
+    # источник данных и дашборд провижинятся автоматически,
+    # руками в интерфейсе ничего настраивать не нужно
+    volumes:
+      - "./grafana/provisioning:/etc/grafana/provisioning"
+    hostname: grafana

@@ -1,0 +1,9 @@
+boto3==1.43.73
+fastapi==0.115.6
+pandas==2.2.1
+prometheus-client==0.20.0
+prometheus-fastapi-instrumentator==7.0.0
+pyarrow==15.0.2
+pydantic==2.5.3
+python-dotenv==1.2.2
+uvicorn==0.24.0.post1
