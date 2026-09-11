@@ -164,3 +164,19 @@ cython_debug/
 old/
 .vscode/
 .DS_Store
+
+# ===== данные проекта =====
+*.csv
+*.cache
+data/
+services/data/
+
+# ===== артефакты обучения =====
+mlruns/
+catboost_info/
+logs/
+!services/test_service.log
+
+# secrets
+.env
+.dvc/config.local

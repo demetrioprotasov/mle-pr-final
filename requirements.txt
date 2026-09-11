@@ -1,0 +1,25 @@
+boto3==1.43.73
+catboost==1.2.8          # 1.2.2 из спринтов 3-4 не имеет колеса под cp312
+dvc[s3]==3.48.1
+fastapi==0.115.6         # 0.104.1 конфликтует по starlette с prometheus-fastapi-instrumentator 7.0.0
+implicit==0.7.3          # 0.7.2 не имеет колеса cp312, ставим ровно 0.7.3
+ipykernel==6.29.5
+jupyterlab
+matplotlib==3.8.4
+mlflow==3.15.1            # версия зафиксирована по alembic_version учебной Postgres
+numpy==1.26.4
+optuna==4.4.0
+pandas==2.2.1
+prometheus-client==0.20.0
+prometheus-fastapi-instrumentator==7.0.0
+psycopg2-binary==2.9.9
+pyarrow==15.0.2          # поднят относительно спринтов ради колеса под cp312
+pydantic==2.5.3
+python-dotenv==1.2.2
+pyyaml==6.0.1
+requests==2.31.0
+scikit-learn==1.6.1
+scipy==1.11.4
+seaborn==0.13.0
+sqlalchemy==2.0.25
+uvicorn==0.24.0.post1
