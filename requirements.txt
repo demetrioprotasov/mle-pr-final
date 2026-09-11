@@ -22,4 +22,6 @@ scikit-learn==1.6.1
 scipy==1.11.4
 seaborn==0.13.0
 sqlalchemy==2.0.25
+# нужен, чтобы на время обучения ALS оставить OpenBLAS один поток
+threadpoolctl==3.6.0
 uvicorn==0.24.0.post1

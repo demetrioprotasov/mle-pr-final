@@ -175,6 +175,8 @@ services/data/
 mlruns/
 catboost_info/
 logs/
+# модель ALS весит сотни мегабайт: лежит в S3, в MLflow приложен манифест с ключами
+models/*.npz
 !services/test_service.log
 
 # secrets

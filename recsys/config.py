@@ -40,5 +40,6 @@ RECS_PERSONAL_PATH = f"{S3_PREFIX}/recommendations/recommendations.parquet"
 RECS_DEFAULT_PATH = f"{S3_PREFIX}/recommendations/top_popular.parquet"
 SIMILAR_PATH = f"{S3_PREFIX}/recommendations/similar_items.parquet"
 ID_MAPS_PATH = f"{S3_PREFIX}/models/id_maps.parquet"
+ALS_MODEL_PATH = f"{S3_PREFIX}/models/als_model.npz"
 
 SEED = 42
