@@ -1,0 +1,14 @@
+boto3==1.43.73
+catboost==1.2.8
+email-validator>=2.0     # без него import mlflow падает: mlflow-skinny 3.15.1 тянет fastapi/pydantic.EmailStr
+implicit==0.7.3
+mlflow-skinny==3.15.1
+numpy==1.26.4
+pandas==2.2.1
+psycopg2-binary==2.9.9
+pyarrow==15.0.2
+python-dotenv==1.2.2
+pyyaml==6.0.1
+scikit-learn==1.6.1
+scipy==1.11.4
+threadpoolctl==3.6.0
